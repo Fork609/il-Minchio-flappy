@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { background: #70c5ce; display: block; margin: auto; }
+    </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="320" height="480"></canvas>
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let bird = { x: 50, y: 150, width: 20, height: 20, gravity: 0.6, lift: -15, velocity: 0 };
+    let pipes = [];
+    let frameCount = 0;
+    const PIPE_WIDTH = 20;
+    const PIPE_GAP = 100;
+    let score = 0;
+
+    function setup() {
+        document.addEventListener('click', () => { bird.velocity += bird.lift; });
+        setInterval(() => {
+            if (frameCount % 90 === 0) {
+                addPipe();
+            }
+            update();
+            draw();
+            frameCount++;
+        }, 1000 / 60);
+    }
+
+    function addPipe() {
+        const pipeHeight = Math.floor(Math.random() * (canvas.height - PIPE_GAP - 20)) + 20;
+        pipes.push({ x: canvas.width, height: pipeHeight });
+    }
+
+    function update() {
+        bird.velocity += bird.gravity;
+        bird.y += bird.velocity;
+
+        if (bird.y + bird.height >= canvas.height) {
+            bird.y = canvas.height - bird.height;
+            bird.velocity = 0;
+        }
+
+        for (let i = pipes.length - 1; i >= 0; i--) {
+            pipes[i].x -= 2;
+            if (pipes[i].x < -PIPE_WIDTH) {
+                pipes.splice(i, 1);
+                score++;
+            }
+            if (bird.x + bird.width > pipes[i].x && bird.x < pipes[i].x + PIPE_WIDTH) {
+                if (bird.y < pipes[i].height || bird.y + bird.height > pipes[i].height + PIPE_GAP) {
+                    alert('Game Over! Your score is: ' + score);
+                    document.location.reload();
+                }
+            }
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+
+        ctx.fillStyle = '#008000';
+        pipes.forEach(pipe => {
+            ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
+            ctx.fillRect(pipe.x, pipe.height + PIPE_GAP, PIPE_WIDTH, canvas.height);
+        });
+
+        ctx.fillStyle = '#000';
+        ctx.font = '20px Arial';
+        ctx.fillText('Score: ' + score, 10, 20);
+    }
+
+    setup();
+</script>
+</body>
+</html>
